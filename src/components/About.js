@@ -16,8 +16,8 @@ const About = () => {
         para={para}
       />
       <div className="about-pic">
-        <img src={getImageSrc} alt="" width="300px" />
-        <img src={getImageSrc2} alt="" width="300px" />
+        <img className="about-img-1" src={getImageSrc} alt="" />
+        <img className="about-img-2" src={getImageSrc2} alt="" />
       </div>
     </section>
   );
