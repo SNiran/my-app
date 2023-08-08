@@ -7,14 +7,14 @@ import About from "./About";
 
 function HomePage() {
   return (
-    <main>
+    <>
       <Header />
-      <Hero />
+      <Hero className="inline-block" />
       <Specials />
       <Testimonials />
       <About />
       <Footer />
-    </main>
+    </>
   );
 }
 

@@ -1,6 +1,6 @@
-const Btn = ({ btnText }) => {
+const Btn = ({ btnText, className }) => {
   return (
-    <a href="/reservations" className="btn">
+    <a href="/reservations" className={`btn ${className}`}>
       {btnText}
     </a>
   );
