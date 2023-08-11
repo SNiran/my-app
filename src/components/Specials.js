@@ -4,7 +4,7 @@ const SpecialsItem = ({ name, price, description, getImageSrc }) => {
   return (
     <div className="specials-item">
       <div className="specials-img">
-        <img src={getImageSrc} alt="" width="200px" />
+        <img src={getImageSrc} alt={name} width="200px" />
       </div>
       <div className="specials-content">
         <div className="specials-text">

@@ -24,7 +24,12 @@ const Hero = ({ className }) => {
       </div>
 
       <div className="hero-img">
-        <img src={getImageSrc} alt="" width="300px" height="350px" />
+        <img
+          src={getImageSrc}
+          alt="restaurant food"
+          width="300px"
+          height="350px"
+        />
       </div>
     </section>
   );

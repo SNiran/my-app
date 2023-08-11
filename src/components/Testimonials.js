@@ -2,11 +2,11 @@ const TestimonialsItem = ({ name, description, getImageSrc, getUserImg }) => {
   return (
     <div className="testimonials-item">
       <div className="testimonials-rating">
-        <img src={getImageSrc} alt="" width="100px" />
+        <img src={getImageSrc} alt="" width="100px" aria-hidden="true" />
       </div>
       <div className="testimonials-content">
         <div className="testimonials-name">
-          <img src={getUserImg} alt="" />
+          <img src={getUserImg} alt={name} />
           <h4>{name}</h4>
         </div>
         <blockquote className="testimonials-review">{description}</blockquote>

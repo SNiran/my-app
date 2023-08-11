@@ -1,49 +1,84 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "./FormProvider";
+import { useNavigate } from "react-router-dom";
 
-const ErrorMessage = () => {
-  return <p className="FieldError">Please enter your name</p>;
+const ErrorMessage = (props) => {
+  const regEx = "^[A-Za-z]+((\\s)?([A-Za-z])+)*$";
+
+  const validNames = (name) => {
+    if (name.trim() === "") {
+      return (
+        <p id="props.id" role="alert">
+          Please enter your name
+        </p>
+      );
+    } else if (name.trim().length < 2) {
+      return (
+        <p id="props.id" role="alert">
+          Min required length is 2. Please enter valid name
+        </p>
+      );
+    } else if (name.match(regEx) === null) {
+      return (
+        <p id="props.id" role="alert">
+          Please enter valid name
+        </p>
+      );
+    } else return null;
+  };
+
+  return (
+    <div className="FieldError">
+      {props.field === "name" && validNames(props.name)}
+      {props.field === "date" && (
+        <p id="props.id" role="alert">
+          Please select booking date
+        </p>
+      )}
+      {props.field === "time" && (
+        <p id="props.id" role="alert">
+          Please select booking time
+        </p>
+      )}
+      {props.field === "guest" && (
+        <p id="props.id" role="alert">
+          Please select number of guests
+        </p>
+      )}
+      {props.field === "occasion" && (
+        <p id="props.id" role="alert">
+          Please select occasion
+        </p>
+      )}
+    </div>
+  );
 };
 
-const Booking = () => {
+const Booking = ({ availableTimes, dispatch, submitForm }) => {
   const { form, setForm } = useForm();
 
-  const [isTouched, setIsTouched] = useState(false);
+  const [isTouched, setIsTouched] = useState({
+    name: false,
+    date: false,
+    guest: false,
+    time: false,
+    occasion: false,
+  });
 
-  //   const handleChange = (e) => {
-  //     setForm({
-  //       ...form,
-  //       [e.target.name]: e.target.value,
-  //     });
-  //   }
+  const navigate = useNavigate();
 
   const occasionList = ["Birthday", "Anniversary", "Other"];
-  const boookingTime = [
-    "11:30 PM",
-    "12:00 PM",
-    "12:30 PM",
-    "1:00 Pm",
-    "1:30 PM",
-    "2:00 PM",
-    "6:00 PM",
-    "6:30 PM",
-    "7:00 PM",
-    "7:30 PM",
-    "8:00 PM",
-  ];
 
-  const today = new Date();
-  const yyyy = today.getFullYear();
-  const mm = today.getMonth() + 1;
-  const dd = today.getDate();
+  const todaysDate = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = today.getMonth() + 1;
+    const dd = today.getDate();
 
-  const minDate = `${yyyy}-${mm < 10 ? `0${mm}` : mm}-${
-    dd < 10 ? `0${dd}` : dd
-  }`;
+    return `${yyyy}-${mm < 10 ? `0${mm}` : mm}-${dd < 10 ? `0${dd}` : dd}`;
+  };
 
-  //   const resetIsTouched = () => {
-  //     setIsTouched(false);
-  //   };
+  const minDate = todaysDate();
 
   const isFormValid = () => {
     const validateForm = { ...form };
@@ -69,8 +104,23 @@ const Booking = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Form Submitted", form);
+    submitForm(form);
+    if (submitForm(form)) {
+      navigate("/confirmed");
+      localStorage.setItem("form", JSON.stringify(form));
+    } else {
+      alert("Booking failed");
+    }
     clearForm();
   };
+
+  const handleChange = (e) => {
+    setForm({
+      ...form,
+      [e.target.name]: e.target.value,
+    });
+  };
+
   return (
     <section className="booking">
       <form onSubmit={handleSubmit}>
@@ -78,29 +128,28 @@ const Booking = () => {
           <h1>Booking Details</h1>
           <div className="field">
             <label htmlFor="firstName">
-              Name <sup>*</sup>
+              Name <sup aria-hidden="true">*</sup>
             </label>
             <input
               type="text"
               id="name"
+              name="name"
               placeholder="Full name"
+              autoComplete="name"
               value={form.name}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  name: e.target.value,
-                })
-              }
-              onBlur={() => setIsTouched(true)}
-              required
+              onChange={handleChange}
+              onBlur={() => setIsTouched({ ...isTouched, name: true })}
+              aria-required="true"
+              aria-describedby="nameError"
             />
-            {isTouched && form.name.trim() === "" ? <ErrorMessage /> : null}
-            {console.log(isTouched)}
+            {isTouched.name ? (
+              <ErrorMessage field="name" name={form.name} id="nameError" />
+            ) : null}
           </div>
 
           <div className="field">
             <label htmlFor="date">
-              Date <sup>*</sup>
+              Date <sup aria-hidden="true">*</sup>
             </label>
             <input
               type="date"
@@ -108,33 +157,40 @@ const Booking = () => {
               name="date"
               min={minDate}
               max="2023-12-31"
+              autoComplete="date"
               value={form.date}
-              onChange={(e) =>
+              onChange={(e) => {
                 setForm({
                   ...form,
                   date: e.target.value,
-                })
-              }
+                });
+                dispatch({
+                  type: "updateTimes",
+                  payload: new Date(e.target.value),
+                });
+              }}
+              onBlur={() => setIsTouched({ ...isTouched, date: true })}
+              aria-required="true"
+              aria-describedby="dateError"
             />
+            {isTouched.date && form.date === "" ? (
+              <ErrorMessage field="date" id="dateError" />
+            ) : null}
           </div>
           <div className="field">
             <label htmlFor="time">
-              Time <sup>*</sup>
+              Time <sup aria-hidden="true">*</sup>
             </label>
             <select
               id="time"
+              name="time"
               value={form.time}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  time: e.target.value,
-                })
-              }
+              onChange={handleChange}
+              onBlur={() => setIsTouched({ ...isTouched, time: true })}
+              aria-required="true"
+              aria-describedby="timeError"
             >
-              {/* <option value="Slot" default disabled>
-                Choose Time Slot
-              </option> */}
-              {boookingTime.map((item) => {
+              {availableTimes.map((item) => {
                 return (
                   <option key={item} value={item}>
                     {item}
@@ -142,41 +198,46 @@ const Booking = () => {
                 );
               })}
             </select>
+            {isTouched.time && form.time === "" ? (
+              <ErrorMessage field="time" id="timeError" />
+            ) : null}
           </div>
 
           <div className="field">
-            <label htmlFor="guests">
-              Number of Guests <sup>*</sup>
+            <label htmlFor="guest">
+              Number of Guests <sup aria-hidden="true">*</sup>
             </label>
             <input
               type="number"
-              id="guests"
-              name="guests"
+              id="guest"
+              name="guest"
               min="1"
               max="50"
               placeholder="1"
+              autoComplete="guest"
               value={form.guest}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  guest: e.target.value,
-                })
-              }
+              onChange={handleChange}
+              onBlur={() => setIsTouched({ ...isTouched, guest: true })}
+              aria-required="true"
+              aria-describedby="guestError"
             />
+            {isTouched.guest && form.guest === "" ? (
+              <ErrorMessage field="guest" id="guestError" />
+            ) : null}
           </div>
           <div className="field">
             <label htmlFor="occasion">
-              What's the Occasion <sup>*</sup>
+              What's the Occasion <sup aria-hidden="true">*</sup>
             </label>
             <select
               id="occasion"
+              name="occasion"
+              autoComplete="occasion"
               value={form.occasion}
-              onChange={(e) =>
-                setForm({
-                  ...form,
-                  occasion: e.target.value,
-                })
-              }
+              onChange={handleChange}
+              onBlur={() => setIsTouched({ ...isTouched, occasion: true })}
+              aria-required="true"
+              aria-describedby="occasionError"
             >
               <option value="Occasion" default disabled>
                 Occasion
@@ -189,14 +250,17 @@ const Booking = () => {
                 );
               })}
             </select>
+            {isTouched.occasion && form.occasion === "Occasion" ? (
+              <ErrorMessage field="occasion" id="occasionError" />
+            ) : null}
           </div>
-          <button type="submit" disabled={!isFormValid()}>
+          <button
+            type="submit"
+            disabled={!isFormValid()}
+            aria-disabled={!isFormValid()}
+          >
             Submit
           </button>
-
-          {/* <p className="note">
-            <sup>*</sup> required field
-          </p> */}
         </fieldset>
       </form>
     </section>
