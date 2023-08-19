@@ -10,7 +10,6 @@ const FormProvider = ({ children }) => {
     guest: "",
     occasion: "Occasion",
   });
-
   return (
     <formContext.Provider value={{ form, setForm }}>
       {children}

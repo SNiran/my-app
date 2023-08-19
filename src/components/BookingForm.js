@@ -1,60 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { useForm } from "./FormProvider";
 import { useNavigate } from "react-router-dom";
+import ErrorMessage from "./ErrorMessage";
 
-const ErrorMessage = (props) => {
-  const regEx = "^[A-Za-z]+((\\s)?([A-Za-z])+)*$";
-
-  const validNames = (name) => {
-    if (name.trim() === "") {
-      return (
-        <p id="props.id" role="alert">
-          Please enter your name
-        </p>
-      );
-    } else if (name.trim().length < 2) {
-      return (
-        <p id="props.id" role="alert">
-          Min required length is 2. Please enter valid name
-        </p>
-      );
-    } else if (name.match(regEx) === null) {
-      return (
-        <p id="props.id" role="alert">
-          Please enter valid name
-        </p>
-      );
-    } else return null;
-  };
-
-  return (
-    <div className="FieldError">
-      {props.field === "name" && validNames(props.name)}
-      {props.field === "date" && (
-        <p id="props.id" role="alert">
-          Please select booking date
-        </p>
-      )}
-      {props.field === "time" && (
-        <p id="props.id" role="alert">
-          Please select booking time
-        </p>
-      )}
-      {props.field === "guest" && (
-        <p id="props.id" role="alert">
-          Please select number of guests
-        </p>
-      )}
-      {props.field === "occasion" && (
-        <p id="props.id" role="alert">
-          Please select occasion
-        </p>
-      )}
-    </div>
-  );
-};
-
-const Booking = ({ availableTimes, dispatch, submitForm }) => {
+const BookingForm = ({ availableTimes, dispatch, submitForm }) => {
   const { form, setForm } = useForm();
 
   const [isTouched, setIsTouched] = useState({
@@ -65,9 +14,18 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
     occasion: false,
   });
 
+  const [items, setItems] = useState([]);
+
   const navigate = useNavigate();
 
   const occasionList = ["Birthday", "Anniversary", "Other"];
+
+  useEffect(() => {
+    const data = localStorage.getItem("form");
+    if (data) {
+      setItems((prevState) => [...prevState, JSON.parse(data)]);
+    }
+  }, []);
 
   const todaysDate = () => {
     const today = new Date();
@@ -101,17 +59,30 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
     setForm(resetForm);
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log("Form Submitted", form);
-    submitForm(form);
-    if (submitForm(form)) {
-      navigate("/confirmed");
-      localStorage.setItem("form", JSON.stringify(form));
+  const AvailableTimes = () => {
+    if (
+      items.length > 0 &&
+      form.date &&
+      items.some((item) => item.date === form.date)
+    ) {
+      return availableTimes
+        .filter((time) => !items.some((item) => item.time === time))
+        .map((time) => {
+          return (
+            <option key={time} value={time}>
+              {time}
+            </option>
+          );
+        });
     } else {
-      alert("Booking failed");
+      return availableTimes.map((item) => {
+        return (
+          <option key={item} value={item}>
+            {item}
+          </option>
+        );
+      });
     }
-    clearForm();
   };
 
   const handleChange = (e) => {
@@ -121,19 +92,31 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
     });
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (submitForm(form)) {
+      navigate("/confirmed", { state: { formData: form } });
+      localStorage.setItem("form", JSON.stringify(form));
+    } else {
+      alert("Booking failed, please try again.");
+    }
+    clearForm();
+  };
+
   return (
     <section className="booking">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} data-testid="form">
         <fieldset>
-          <h1>Booking Details</h1>
+          <h1 data-testid="form-heading">Booking Details</h1>
           <div className="field">
-            <label htmlFor="firstName">
+            <label htmlFor="name">
               Name <sup aria-hidden="true">*</sup>
             </label>
             <input
               type="text"
               id="name"
               name="name"
+              data-testid="name"
               placeholder="Full name"
               autoComplete="name"
               value={form.name}
@@ -155,6 +138,7 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
               type="date"
               id="date"
               name="date"
+              data-testid="date"
               min={minDate}
               max="2023-12-31"
               autoComplete="date"
@@ -184,19 +168,14 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
             <select
               id="time"
               name="time"
+              data-testid="time"
               value={form.time}
               onChange={handleChange}
               onBlur={() => setIsTouched({ ...isTouched, time: true })}
               aria-required="true"
               aria-describedby="timeError"
             >
-              {availableTimes.map((item) => {
-                return (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                );
-              })}
+              <AvailableTimes />
             </select>
             {isTouched.time && form.time === "" ? (
               <ErrorMessage field="time" id="timeError" />
@@ -211,6 +190,7 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
               type="number"
               id="guest"
               name="guest"
+              data-testid="guest"
               min="1"
               max="50"
               placeholder="1"
@@ -232,6 +212,7 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
             <select
               id="occasion"
               name="occasion"
+              data-testid="occasion"
               autoComplete="occasion"
               value={form.occasion}
               onChange={handleChange}
@@ -256,6 +237,7 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
           </div>
           <button
             type="submit"
+            data-testid="submit"
             disabled={!isFormValid()}
             aria-disabled={!isFormValid()}
           >
@@ -267,4 +249,4 @@ const Booking = ({ availableTimes, dispatch, submitForm }) => {
   );
 };
 
-export default Booking;
+export default BookingForm;

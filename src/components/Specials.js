@@ -49,7 +49,7 @@ const Specials = () => {
     <section className="specials">
       <div className="specials-menu">
         <h1>This week's Specials!</h1>
-        <Btn btnText="Online Menu" />
+        <Btn btnText="Online Menu" href="#" />
       </div>
 
       <div className="specials-container">

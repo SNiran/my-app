@@ -20,7 +20,11 @@ const Hero = ({ className }) => {
     <section className="hero">
       <div>
         <Text title={heading} subTitle={subHeading} para={para} />
-        <Btn btnText="Book a Table" className={className} />
+        <Btn
+          btnText="Book a Table"
+          className={className}
+          href="/reservations"
+        />
       </div>
 
       <div className="hero-img">

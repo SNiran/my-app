@@ -3,10 +3,6 @@ const Nav = () => {
   return (
     <nav>
       <ul>
-        {/* {navLinks.map((navItem) => {
-            return <li key={navItem}>{navItem}</li>;
-          })} */}
-
         <Link to="/" className="nav-item">
           Home
         </Link>
