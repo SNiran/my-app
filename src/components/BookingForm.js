@@ -14,18 +14,17 @@ const BookingForm = ({ availableTimes, dispatch, submitForm }) => {
     occasion: false,
   });
 
-  const [items, setItems] = useState([]);
-
   const navigate = useNavigate();
 
-  const occasionList = ["Birthday", "Anniversary", "Other"];
+  const [items, setItems] = useState(
+    JSON.parse(localStorage.getItem("formData")) || []
+  );
 
   useEffect(() => {
-    const data = localStorage.getItem("form");
-    if (data) {
-      setItems((prevState) => [...prevState, JSON.parse(data)]);
-    }
+    setItems(JSON.parse(localStorage.getItem("formData")) || []);
   }, []);
+
+  const occasionList = ["Birthday", "Anniversary", "Other"];
 
   const todaysDate = () => {
     const today = new Date();
@@ -95,8 +94,16 @@ const BookingForm = ({ availableTimes, dispatch, submitForm }) => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (submitForm(form)) {
+      const data = localStorage.getItem("formData");
+      if (data) {
+        localStorage.setItem(
+          "formData",
+          JSON.stringify([...JSON.parse(data), form])
+        );
+      } else {
+        localStorage.setItem("formData", JSON.stringify([form]));
+      }
       navigate("/confirmed", { state: { formData: form } });
-      localStorage.setItem("form", JSON.stringify(form));
     } else {
       alert("Booking failed, please try again.");
     }
